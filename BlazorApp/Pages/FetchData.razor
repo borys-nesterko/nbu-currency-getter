@@ -1,0 +1,63 @@
+﻿@page "/fetchdata"
+@using BlazorApp.Data
+@inject WeatherForecastService ForecastService
+@inject ICurrencyRateService CurrencyRateService
+
+<PageTitle>NBU rates</PageTitle>
+
+<h1>NBU rates</h1>
+
+<p>This component demonstrates fetching data from a service.</p>
+<p>Specify dates</p>
+<textarea @bind="dates"></textarea>
+<button @onclick="RetrieveRates">Update</button>
+
+@if (rates == null || rates.Count == 0)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rate in rates)
+            {
+                <tr>
+                    <td>@rate.Key</td>
+                    <td>@rate.Value.ToString(CultureInfo.InvariantCulture)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code 
+{
+    private string? dates;
+    private Dictionary<string, decimal>? rates;
+
+    private async Task RetrieveRates()
+    {
+        if (rates == null)
+        {
+            rates = new();
+        }
+        if (dates != null)
+        {
+            var d = dates.Split("\t");
+            foreach(var date in d)
+            {
+                var dateTime = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture);
+                var rate = await CurrencyRateService.GetCurrencyRate(dateTime);
+                rates[date] = rate;
+            }
+        }
+    }
+}
+
