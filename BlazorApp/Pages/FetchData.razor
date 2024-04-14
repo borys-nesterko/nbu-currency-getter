@@ -9,7 +9,7 @@
 
 <p>This component demonstrates fetching data from a service.</p>
 <p>Specify dates</p>
-<textarea @bind="dates"></textarea>
+<textarea @bind="input"></textarea>
 <button @onclick="RetrieveRates">Update</button>
 
 @if (rates == null || rates.Count == 0)
@@ -39,25 +39,35 @@ else
 
 @code 
 {
-    private string? dates;
+    private string? input;
     private Dictionary<string, decimal>? rates;
 
     private async Task RetrieveRates()
     {
-        if (rates == null)
-        {
-            rates = new();
-        }
-        if (dates != null)
-        {
-            var d = dates.Split("\t");
-            foreach(var date in d)
-            {
-                var dateTime = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture);
-                var rate = await CurrencyRateService.GetCurrencyRate(dateTime);
-                rates[date] = rate;
-            }
-        }
+		try
+		{
+			if (rates == null)
+			{
+				rates = new();
+			}
+			
+			if (input != null)
+			{
+				var dates = input.Split("\n");
+				foreach(var date in dates)
+				{
+					//var trimmed = date.Replace(Environment.NewLine, string.Empty);
+					var dateTime = DateTime.ParseExact(date, "M/d/yyyy", CultureInfo.InvariantCulture);
+					var rate = await CurrencyRateService.GetCurrencyRate(dateTime);
+					rates[date] = rate;
+				}
+			}
+		}
+		catch (Exception exception)
+		{
+			Console.WriteLine(exception.Message);
+			throw;
+		}
     }
 }
 
